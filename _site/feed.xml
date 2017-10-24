@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2017-10-20T14:30:22+08:00</updated><id>http://localhost:4000/</id><title type="html">Lucas Jin’s Blog</title><subtitle>An amazing website.</subtitle><author><name>Lucas Jin</name><email>jjgdsa@gmail.com</email></author><entry><title type="html">Let’s Encrypt为nginx添加https时遇到的坑</title><link href="http://localhost:4000/let's-encrypt/Lets-Encrypt-https/" rel="alternate" type="text/html" title="Let's Encrypt为nginx添加https时遇到的坑" /><published>2017-10-19T17:00:16+08:00</published><updated>2017-10-19T17:00:16+08:00</updated><id>http://localhost:4000/let's-encrypt/Lets-Encrypt-https</id><content type="html" xml:base="http://localhost:4000/let's-encrypt/Lets-Encrypt-https/">&lt;h2 id=&quot;安装certbot&quot;&gt;安装certbot&lt;/h2&gt;
+
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;yum install certbot
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;遇到的问题：yum提示找不到certbot包&lt;/p&gt;
+
+&lt;p&gt;原因: 通常我们遇到&lt;code class=&quot;highlighter-rouge&quot;&gt;yum install&lt;/code&gt;提示没有可用软件包时，是因为CentOS自带源中提供软件包数量有限，我们需要为CentOS安装EPEL源，EPEL源中包含上万个软件。&lt;/p&gt;
+
+&lt;p&gt;解决方法:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;安装EPEL
+    &lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;yum install epel-release
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;检查yum源中是否已加入EPEL
+    &lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;yum repolist
+repo id                     repo name                                                                status
+base/7/x86_64               CentOS-7 - Base                                                          9,590+1
+elrepo-kernel               ELRepo.org Community Enterprise Linux Kernel Repository - el7                 33
+epel/x86_64                 Extra Packages &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;Enterprise Linux 7 - x86_64                            11,992
+extras/7/x86_64             CentOS-7 - Extras                                                            227
+updates/7/x86_64            CentOS-7 - Updates                                                         738+3
+repolist: 22,580
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;p&gt;从上面我们可以看到，yum源中已经包含epel了，并且epel源中共包含11992个软件包。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;如果你的repolist中没有epel，那就需要手动配置一下，添加以下代码：&lt;/p&gt;
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;vi /etc/yum.repos.d/epel.repo
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;epel]
+&lt;span class=&quot;nv&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ExtraPackages &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;Enterprise Linux 7 - &lt;span class=&quot;nv&quot;&gt;$basearch&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#baseurl=http://download.fedoraproject.org/pub/epel/7/$basearch&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;mirrorlist&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;https://mirrors.fedoraproject.org/metalink?repo&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;epel-7&amp;amp;arch&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$basearch&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;failovermethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;priority
+&lt;span class=&quot;nv&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1
+&lt;span class=&quot;nv&quot;&gt;gpgcheck&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
+&lt;span class=&quot;nv&quot;&gt;gpgkey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;epel-debuginfo]
+&lt;span class=&quot;nv&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ExtraPackages &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;Enterprise Linux 7 - &lt;span class=&quot;nv&quot;&gt;$basearch&lt;/span&gt; - Debug
+&lt;span class=&quot;c&quot;&gt;#baseurl=http://download.fedoraproject.org/pub/epel/7/$basearch/debug&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;mirrorlist&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;https://mirrors.fedoraproject.org/metalink?repo&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;epel-debug-7&amp;amp;arch&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$basearch&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;failovermethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;priority
+&lt;span class=&quot;nv&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
+&lt;span class=&quot;nv&quot;&gt;gpgkey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+&lt;span class=&quot;nv&quot;&gt;gpgcheck&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1
+
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;epel-source]
+&lt;span class=&quot;nv&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ExtraPackages &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;Enterprise Linux 7 - &lt;span class=&quot;nv&quot;&gt;$basearch&lt;/span&gt; - Source
+&lt;span class=&quot;c&quot;&gt;#baseurl=http://download.fedoraproject.org/pub/epel/7/SRPMS&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;mirrorlist&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;https://mirrors.fedoraproject.org/metalink?repo&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;epel-source-7&amp;amp;arch&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$basearch&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;failovermethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;priority
+&lt;span class=&quot;nv&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
+&lt;span class=&quot;nv&quot;&gt;gpgkey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+&lt;span class=&quot;nv&quot;&gt;gpgcheck&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;如果你的&lt;code class=&quot;highlighter-rouge&quot;&gt;epel.repo&lt;/code&gt;文件中已经有这段内容，那么需要将[epel]配置块中的enable=0改成enable=1。&lt;/p&gt;
+
+&lt;h2 id=&quot;安装certbot提供的nginx插件&quot;&gt;安装certbot提供的nginx插件&lt;/h2&gt;
+
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;certbot &lt;span class=&quot;nt&quot;&gt;--nginx&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;遇到的问题:
+&lt;code class=&quot;highlighter-rouge&quot;&gt;The requested nginx plugin does not appear to be installed&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;原因:
+我也是google中搜到的解决方法，并不太明白具体原因&lt;/p&gt;
+
+&lt;p&gt;解决方法:
+先用yum安装python-certbot-nginx,之后再执行上面的命令就可以成功安装certbot提供的nginx插件了&lt;/p&gt;
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;yum install python-certbot-nginx
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;以上就是我在使用Let’s Encrypt为自己的博客配置https时与到的坑，希望对大家有所帮助。如需要完整的配置流程，强烈推荐&lt;code class=&quot;highlighter-rouge&quot;&gt;康上明学&lt;/code&gt;的&lt;a href=&quot;https://ksmx.me/letsencrypt-ssl-https/&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Let's Encrypt 给网站加 HTTPS 完全指南&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;</content><author><name>Lucas Jin</name><email>jjgdsa@gmail.com</email></author><summary type="html">安装certbot</summary></entry></feed>
